@@ -22,6 +22,7 @@ import pkg from 'vs/platform/node/package';
 import { IWindowSettings, MenuBarVisibility, IWindowConfiguration, ReadyState } from 'vs/platform/windows/common/windows';
 import { IDisposable, dispose } from 'vs/base/common/lifecycle';
 import { KeyboardLayoutMonitor } from 'vs/code/electron-main/keyboard';
+import { CodeTouchBar } from 'vs/code/electron-main/touchbar';
 import { isLinux, isMacintosh, isWindows } from 'vs/base/common/platform';
 import { ICodeWindow } from 'vs/platform/windows/electron-main/windows';
 import { IWorkspaceIdentifier, IWorkspacesMainService } from 'vs/platform/workspaces/common/workspaces';
@@ -87,6 +88,8 @@ export class CodeWindow implements ICodeWindow {
 	private currentMenuBarVisibility: MenuBarVisibility;
 	private toDispose: IDisposable[];
 	private representedFilename: string;
+
+	private touchBar: CodeTouchBar;
 
 	private whenReadyCallbacks: TValueCallback<CodeWindow>[];
 
@@ -202,6 +205,10 @@ export class CodeWindow implements ICodeWindow {
 			if (!this._win.isVisible()) {
 				this._win.show(); // to reduce flicker from the default window size to maximize, we only show after maximize
 			}
+		}
+
+		if (isMacintosh) {
+			this.touchBar = new CodeTouchBar(this.win);
 		}
 
 		this._lastFocusTime = Date.now(); // since we show directly, we need to set the last focus time too
