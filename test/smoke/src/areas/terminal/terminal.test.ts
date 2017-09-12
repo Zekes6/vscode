@@ -3,22 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
 import { SpectronApplication } from '../../spectron/application';
 
 describe('Terminal', () => {
 	let app: SpectronApplication;
-	before(() => { app = new SpectronApplication(); return app.start(); });
+	before(() => { app = new SpectronApplication(); return app.start('Terminal'); });
 	after(() => app.stop());
+	beforeEach(function () { app.screenCapturer.testName = this.currentTest.title; });
 
 	it(`opens terminal, runs 'echo' and verifies the output`, async function () {
 		const expected = new Date().getTime().toString();
 		await app.workbench.terminal.showTerminal();
 
-		const currentLine = await app.workbench.terminal.getCurrentLineNumber();
 		await app.workbench.terminal.runCommand(`echo ${expected}`);
 
-		const actual = await app.workbench.terminal.waitForText(currentLine + 1, text => !!text.trim());
-		assert.equal(actual.trim(), expected);
+		await app.workbench.terminal.waitForTerminalText(terminalText => {
+			// Last line will not contain the output
+			for (let index = terminalText.length - 2; index >= 0; index--) {
+				if (!!terminalText[index] && terminalText[index].trim() === expected) {
+					return true;
+				}
+			}
+			return false;
+		});
 	});
 });

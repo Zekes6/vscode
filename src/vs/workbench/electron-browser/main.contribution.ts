@@ -11,14 +11,17 @@ import product from 'vs/platform/node/product';
 import * as os from 'os';
 import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from 'vs/platform/configuration/common/configurationRegistry';
-import { IWorkbenchActionRegistry, Extensions } from 'vs/workbench/common/actionRegistry';
+import { IWorkbenchActionRegistry, Extensions } from 'vs/workbench/common/actions';
 import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
 import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
-import { CloseEditorAction, KeybindingsReferenceAction, OpenDocumentationUrlAction, OpenIntroductoryVideosUrlAction, OpenTipsAndTricksUrlAction, ReportIssueAction, ReportPerformanceIssueAction, ZoomResetAction, ZoomOutAction, ZoomInAction, ToggleFullScreenAction, ToggleMenuBarAction, CloseWorkspaceAction, CloseCurrentWindowAction, SwitchWindow, NewWindowAction, CloseMessagesAction, NavigateUpAction, NavigateDownAction, NavigateLeftAction, NavigateRightAction, IncreaseViewSizeAction, DecreaseViewSizeAction, ShowStartupPerformance, ToggleSharedProcessAction, QuickSwitchWindow, QuickOpenRecentAction } from 'vs/workbench/electron-browser/actions';
+import { CloseEditorAction, KeybindingsReferenceAction, OpenDocumentationUrlAction, OpenIntroductoryVideosUrlAction, OpenTipsAndTricksUrlAction, ReportIssueAction, ReportPerformanceIssueAction, ZoomResetAction, ZoomOutAction, ZoomInAction, ToggleFullScreenAction, ToggleMenuBarAction, CloseWorkspaceAction, CloseCurrentWindowAction, SwitchWindow, NewWindowAction, CloseMessagesAction, NavigateUpAction, NavigateDownAction, NavigateLeftAction, NavigateRightAction, IncreaseViewSizeAction, DecreaseViewSizeAction, ShowStartupPerformance, ToggleSharedProcessAction, QuickSwitchWindow, QuickOpenRecentAction, inRecentFilesPickerContextKey } from 'vs/workbench/electron-browser/actions';
 import { MessagesVisibleContext } from 'vs/workbench/electron-browser/workbench';
 import { IJSONSchema } from 'vs/base/common/jsonSchema';
 import { registerCommands } from 'vs/workbench/electron-browser/commands';
 import { AddRootFolderAction, OpenWorkspaceAction, SaveWorkspaceAsAction, OpenWorkspaceConfigFileAction } from 'vs/workbench/browser/actions/workspaceActions';
+import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
+import { inQuickOpenContext, getQuickNavigateHandler } from 'vs/workbench/browser/parts/quickopen/quickopen';
+import { KeybindingsRegistry } from 'vs/platform/keybinding/common/keybindingsRegistry';
 
 // Contribute Commands
 registerCommands();
@@ -73,10 +76,10 @@ workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(Toggle
 if (isWindows || isLinux) {
 	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(ToggleMenuBarAction, ToggleMenuBarAction.ID, ToggleMenuBarAction.LABEL), 'View: Toggle Menu Bar', viewCategory);
 }
-workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateUpAction, NavigateUpAction.ID, NavigateUpAction.LABEL, null), 'View: Move to the View Above', viewCategory);
-workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateDownAction, NavigateDownAction.ID, NavigateDownAction.LABEL, null), 'View: Move to the View Below', viewCategory);
-workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateLeftAction, NavigateLeftAction.ID, NavigateLeftAction.LABEL, null), 'View: Move to the View on the Left', viewCategory);
-workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateRightAction, NavigateRightAction.ID, NavigateRightAction.LABEL, null), 'View: Move to the View on the Right', viewCategory);
+workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateUpAction, NavigateUpAction.ID, NavigateUpAction.LABEL, null), 'View: Navigate to the View Above', viewCategory);
+workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateDownAction, NavigateDownAction.ID, NavigateDownAction.LABEL, null), 'View: Navigate to the View Below', viewCategory);
+workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateLeftAction, NavigateLeftAction.ID, NavigateLeftAction.LABEL, null), 'View: Navigate to the View on the Left', viewCategory);
+workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(NavigateRightAction, NavigateRightAction.ID, NavigateRightAction.LABEL, null), 'View: Navigate to the View on the Right', viewCategory);
 
 workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(IncreaseViewSizeAction, IncreaseViewSizeAction.ID, IncreaseViewSizeAction.LABEL, null), 'View: Increase Current View Size', viewCategory);
 workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(DecreaseViewSizeAction, DecreaseViewSizeAction.ID, DecreaseViewSizeAction.LABEL, null), 'View: Decrease Current View Size', viewCategory);
@@ -86,7 +89,7 @@ if (product.quality !== 'stable') {
 	const workspacesCategory = nls.localize('workspaces', "Workspaces");
 	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(AddRootFolderAction, AddRootFolderAction.ID, AddRootFolderAction.LABEL), 'Workspaces: Add Folder to Workspace...', workspacesCategory);
 	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(OpenWorkspaceAction, OpenWorkspaceAction.ID, OpenWorkspaceAction.LABEL), 'Workspaces: Open Workspace...', workspacesCategory);
-	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(SaveWorkspaceAsAction, SaveWorkspaceAsAction.ID, SaveWorkspaceAsAction.LABEL), 'Workspaces: Save Workspace...', workspacesCategory);
+	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(SaveWorkspaceAsAction, SaveWorkspaceAsAction.ID, SaveWorkspaceAsAction.LABEL), 'Workspaces: Save Workspace As...', workspacesCategory);
 	workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(OpenWorkspaceConfigFileAction, OpenWorkspaceConfigFileAction.ID, OpenWorkspaceConfigFileAction.LABEL), 'Workspaces: Open Workspace Configuration File', workspacesCategory);
 }
 
@@ -94,6 +97,28 @@ if (product.quality !== 'stable') {
 const developerCategory = nls.localize('developer', "Developer");
 workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(ShowStartupPerformance, ShowStartupPerformance.ID, ShowStartupPerformance.LABEL), 'Developer: Startup Performance', developerCategory);
 workbenchActionsRegistry.registerWorkbenchAction(new SyncActionDescriptor(ToggleSharedProcessAction, ToggleSharedProcessAction.ID, ToggleSharedProcessAction.LABEL), 'Developer: Toggle Shared Process', developerCategory);
+
+const recentFilesPickerContext = ContextKeyExpr.and(inQuickOpenContext, ContextKeyExpr.has(inRecentFilesPickerContextKey));
+
+const quickOpenNavigateNextInRecentFilesPickerId = 'workbench.action.quickOpenNavigateNextInRecentFilesPicker';
+KeybindingsRegistry.registerCommandAndKeybindingRule({
+	id: quickOpenNavigateNextInRecentFilesPickerId,
+	weight: KeybindingsRegistry.WEIGHT.workbenchContrib(50),
+	handler: getQuickNavigateHandler(quickOpenNavigateNextInRecentFilesPickerId, true),
+	when: recentFilesPickerContext,
+	primary: KeyMod.CtrlCmd | KeyCode.KEY_R,
+	mac: { primary: KeyMod.WinCtrl | KeyCode.KEY_R }
+});
+
+const quickOpenNavigatePreviousInRecentFilesPicker = 'workbench.action.quickOpenNavigatePreviousInRecentFilesPicker';
+KeybindingsRegistry.registerCommandAndKeybindingRule({
+	id: quickOpenNavigatePreviousInRecentFilesPicker,
+	weight: KeybindingsRegistry.WEIGHT.workbenchContrib(50),
+	handler: getQuickNavigateHandler(quickOpenNavigatePreviousInRecentFilesPicker, false),
+	when: recentFilesPickerContext,
+	primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_R,
+	mac: { primary: KeyMod.WinCtrl | KeyMod.Shift | KeyCode.KEY_R }
+});
 
 // Configuration: Workbench
 const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
@@ -103,6 +128,23 @@ let workbenchProperties: { [path: string]: IJSONSchema; } = {
 		'type': 'boolean',
 		'description': nls.localize('showEditorTabs', "Controls if opened editors should show in tabs or not."),
 		'default': true
+	},
+	'workbench.editor.labelFormat': {
+		'type': 'string',
+		'enum': ['default', 'short', 'medium', 'long'],
+		'enumDescriptions': [
+			nls.localize('workbench.editor.labelFormat.default', "Show the name of the file. When tabs are enabled and two files have the same name in one group the distinguinshing sections of each file's path is added. When tabs are disabled, the path relative to workspace root is shown if the editor is active."),
+			nls.localize('workbench.editor.labelFormat.short', "Show the name of the file followed by it's directory name."),
+			nls.localize('workbench.editor.labelFormat.medium', "Show the name of the file followed by it's path relative to the workspace root."),
+			nls.localize('workbench.editor.labelFormat.long', "Show the name of the file followed by it's absolute path.")
+		],
+		'default': 'default',
+		'description': nls.localize({ comment: ['This is the description for a setting. Values surrounded by parenthesis are not to be translated.'], key: 'tabDescription' },
+			`Controls the format of the label for an editor. Changing this setting can for example make it easier to understand the location of a file:
+- short:   'parent'
+- medium:  'workspace/src/parent'
+- long:    '/home/user/workspace/src/parent'
+- default: '.../parent', when another tab shares the same title, or the relative workspace path if tabs are disabled`),
 	},
 	'workbench.editor.tabCloseButton': {
 		'type': 'string',

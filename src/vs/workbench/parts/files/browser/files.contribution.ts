@@ -11,7 +11,7 @@ import nls = require('vs/nls');
 import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { IConfigurationRegistry, Extensions as ConfigurationExtensions, ConfigurationScope } from 'vs/platform/configuration/common/configurationRegistry';
-import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actionRegistry';
+import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
 import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions } from 'vs/workbench/common/contributions';
 import { IEditorRegistry, Extensions as EditorExtensions, IEditorInputFactory, EditorInput, IFileEditorInput } from 'vs/workbench/common/editor';
 import { AutoSaveConfiguration, HotExitConfiguration, SUPPORTED_ENCODINGS } from 'vs/platform/files/common/files';
@@ -201,15 +201,18 @@ configurationRegistry.registerConfiguration({
 		},
 		'files.encoding': {
 			'type': 'string',
+			'overridable': true,
 			'enum': Object.keys(SUPPORTED_ENCODINGS),
 			'default': 'utf8',
-			'description': nls.localize('encoding', "The default character set encoding to use when reading and writing files."),
-			'scope': ConfigurationScope.RESOURCE
+			'description': nls.localize('encoding', "The default character set encoding to use when reading and writing files. This setting can be configured per language too."),
+			'scope': ConfigurationScope.RESOURCE,
+			'enumDescriptions': Object.keys(SUPPORTED_ENCODINGS).map(key => SUPPORTED_ENCODINGS[key].labelLong)
 		},
 		'files.autoGuessEncoding': {
 			'type': 'boolean',
+			'overridable': true,
 			'default': false,
-			'description': nls.localize('autoGuessEncoding', "When enabled, will attempt to guess the character set encoding when opening files"),
+			'description': nls.localize('autoGuessEncoding', "When enabled, will attempt to guess the character set encoding when opening files. This setting can be configured per language too."),
 			'scope': ConfigurationScope.RESOURCE
 		},
 		'files.eol': {

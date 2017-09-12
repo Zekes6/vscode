@@ -5,9 +5,10 @@
 
 import { Application, SpectronClient as WebClient } from 'spectron';
 import { SpectronClient } from './client';
-import { NullScreenshot, IScreenshot } from '../helpers/screenshot';
+import { ScreenCapturer } from '../helpers/screenshot';
 import { Workbench } from '../areas/workbench/workbench';
 import * as fs from 'fs';
+import * as cp from 'child_process';
 import * as path from 'path';
 
 export const LATEST_PATH = process.env.VSCODE_PATH as string;
@@ -17,6 +18,7 @@ export const CODE_WORKSPACE_PATH = process.env.VSCODE_WORKSPACE_PATH as string;
 export const USER_DIR = process.env.VSCODE_USER_DIR as string;
 export const EXTENSIONS_DIR = process.env.VSCODE_EXTENSIONS_DIR as string;
 export const VSCODE_EDITION = process.env.VSCODE_EDITION as string;
+export const SCREENSHOTS_DIR = process.env.SCREENSHOTS_DIR as string;
 
 export enum VSCODE_BUILD {
 	DEV,
@@ -31,7 +33,7 @@ export class SpectronApplication {
 
 	private _client: SpectronClient;
 	private _workbench: Workbench;
-	private _screenshot: IScreenshot;
+	private _screenCapturer: ScreenCapturer;
 	private spectron: Application;
 	private keybindings: any[];
 
@@ -60,26 +62,27 @@ export class SpectronApplication {
 		return this.spectron.client;
 	}
 
-	public get screenshot(): IScreenshot {
-		return this._screenshot;
+	public get screenCapturer(): ScreenCapturer {
+		return this._screenCapturer;
 	}
 
 	public get workbench(): Workbench {
 		return this._workbench;
 	}
 
-	public async start(): Promise<any> {
+	public async start(testSuiteName: string, codeArgs: string[] = []): Promise<any> {
 		await this.retrieveKeybindings();
-		await this.startApplication();
-		await this.client.windowByIndex(1); // focuses on main renderer window
+		cp.execSync('git checkout .', { cwd: WORKSPACE_PATH });
+		await this.startApplication(testSuiteName, codeArgs);
 		await this.checkWindowReady();
+		await this.waitForWelcome();
 	}
 
 	public async reload(): Promise<any> {
-		await this.workbench.commandPallette.runCommand('Reload Window');
+		await this.workbench.quickopen.runCommand('Reload Window');
 		// TODO @sandy: Find a proper condition to wait for reload
 		await this.wait(.5);
-		await this.client.waitForHTML('[id="workbench.main.container"]');
+		await this.checkWindowReady();
 	}
 
 	public async stop(): Promise<any> {
@@ -92,7 +95,7 @@ export class SpectronApplication {
 		return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 	}
 
-	private async startApplication(): Promise<any> {
+	private async startApplication(testSuiteName: string, codeArgs: string[] = []): Promise<any> {
 
 		let args: string[] = [];
 		let chromeDriverArgs: string[] = [];
@@ -105,7 +108,9 @@ export class SpectronApplication {
 		// Prevent 'Getting Started' web page from opening on clean user-data-dir
 		args.push('--skip-getting-started');
 		// Ensure that running over custom extensions directory, rather than picking up the one that was used by a tester previously
-		args.push(`--extensions-dir=${path.join(EXTENSIONS_DIR, new Date().getTime().toString())}`);
+		args.push(`--extensions-dir=${EXTENSIONS_DIR}`);
+
+		args.push(...codeArgs);
 
 		chromeDriverArgs.push(`--user-data-dir=${path.join(this._userDir, new Date().getTime().toString())}`);
 
@@ -118,13 +123,21 @@ export class SpectronApplication {
 		});
 		await this.spectron.start();
 
-		this._screenshot = new NullScreenshot();
-		this._client = new SpectronClient(this.spectron, this.screenshot);
+		this._screenCapturer = new ScreenCapturer(this.spectron, testSuiteName);
+		this._client = new SpectronClient(this.spectron, this);
 		this._workbench = new Workbench(this);
 	}
 
 	private async checkWindowReady(): Promise<any> {
+		await this.webclient.waitUntilWindowLoaded();
+		// Spectron opens multiple terminals in Windows platform
+		// Workaround to focus the right window - https://github.com/electron/spectron/issues/60
+		await this.client.windowByIndex(1);
+		await this.app.browserWindow.focus();
 		await this.client.waitForHTML('[id="workbench.main.container"]');
+	}
+
+	private async waitForWelcome(): Promise<any> {
 		await this.client.waitForElement('.explorer-folders-view');
 		await this.client.waitForElement(`.editor-container[id="workbench.editor.walkThroughPart"] .welcomePage`);
 	}
@@ -152,7 +165,7 @@ export class SpectronApplication {
 	public command(command: string, capture?: boolean): Promise<any> {
 		const binding = this.keybindings.find(x => x['command'] === command);
 		if (!binding) {
-			return this.workbench.commandPallette.runCommand(command);
+			return this.workbench.quickopen.runCommand(command);
 		}
 
 		const keys: string = binding.key;

@@ -6,20 +6,19 @@
 import * as assert from 'assert';
 import { SpectronApplication } from '../../spectron/application';
 import { ProblemSeverity, Problems } from '../problems/problems';
-import { QuickOutline } from '../editor/quickoutline';
-import { SettingsEditor } from '../preferences/settings';
 
 describe('CSS', () => {
 	let app: SpectronApplication;
-	before(() => { app = new SpectronApplication(); return app.start(); });
+	before(function () { app = new SpectronApplication(); return app.start('CSS'); });
 	after(() => app.stop());
+	beforeEach(function () { app.screenCapturer.testName = this.currentTest.title; });
 
 	it('verifies quick outline', async () => {
 		await app.workbench.quickopen.openFile('style.css');
-		const outline = new QuickOutline(app);
-		await outline.openSymbols();
-		const elements = await app.client.waitForElements(QuickOutline.QUICK_OPEN_ENTRY_SELECTOR, elements => elements.length === 2);
-		assert.ok(elements, `Did not find two outline elements`);
+
+		const outline = await app.workbench.editor.openOutline();
+
+		await outline.waitForQuickOpenElements(2);
 	});
 
 	it('verifies warnings for the empty rule', async () => {
@@ -28,26 +27,29 @@ describe('CSS', () => {
 		await app.client.type('.foo{}');
 
 		let warning = await app.client.waitForElement(Problems.getSelectorInEditor(ProblemSeverity.WARNING));
+		await app.screenCapturer.capture('CSS Warning in editor');
 		assert.ok(warning, `Warning squiggle is not shown in 'style.css'.`);
 
-		const problems = new Problems(app);
-		await problems.showProblemsView();
+		await app.workbench.problems.showProblemsView();
 		warning = await app.client.waitForElement(Problems.getSelectorInProblemsView(ProblemSeverity.WARNING));
+		await app.screenCapturer.capture('CSS Warning in problems view');
 		assert.ok(warning, 'Warning does not appear in Problems view.');
-		await problems.hideProblemsView();
+		await app.workbench.problems.hideProblemsView();
 	});
 
 	it('verifies that warning becomes an error once setting changed', async () => {
-		await new SettingsEditor(app).addUserSetting('css.lint.emptyRules', '"error"');
+		await app.workbench.settingsEditor.addUserSetting('css.lint.emptyRules', '"error"');
 		await app.workbench.quickopen.openFile('style.css');
 		await app.client.type('.foo{}');
 
 		let error = await app.client.waitForElement(Problems.getSelectorInEditor(ProblemSeverity.ERROR));
+		await app.screenCapturer.capture('CSS Error in editor');
 		assert.ok(error, `Warning squiggle is not shown in 'style.css'.`);
 
 		const problems = new Problems(app);
 		await problems.showProblemsView();
 		error = await app.client.waitForElement(Problems.getSelectorInProblemsView(ProblemSeverity.ERROR));
+		await app.screenCapturer.capture('CSS Error in probles view');
 		assert.ok(error, 'Warning does not appear in Problems view.');
 		await problems.hideProblemsView();
 	});

@@ -15,6 +15,16 @@
 			}
 		},
 		{
+			"scope": [
+				"meta.embedded",
+				"source.groovy.embedded"
+			],
+			"settings": {
+				"foreground": "#FFFFFF",
+				"background": "#000000"
+			}
+		},
+		{
 			"scope": "emphasis",
 			"settings": {
 				"fontStyle": "italic"
@@ -231,7 +241,7 @@
 			"scope": [
 				"punctuation.definition.template-expression.begin",
 				"punctuation.definition.template-expression.end",
-				"punctuation.section.embedded.coffee"
+				"punctuation.section.embedded"
 			],
 			"settings": {
 				"foreground": "#569cd6"

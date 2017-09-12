@@ -14,7 +14,7 @@ import * as platform from 'vs/base/common/platform';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
 import { ITerminalService, KEYBINDING_CONTEXT_TERMINAL_FOCUS, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_INPUT_FOCUSED, KEYBINDING_CONTEXT_TERMINAL_TEXT_SELECTED, TERMINAL_PANEL_ID, TERMINAL_DEFAULT_RIGHT_CLICK_COPY_PASTE, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE, TerminalCursorStyle } from 'vs/workbench/parts/terminal/common/terminal';
 import { TERMINAL_DEFAULT_SHELL_LINUX, TERMINAL_DEFAULT_SHELL_OSX, TERMINAL_DEFAULT_SHELL_WINDOWS } from 'vs/workbench/parts/terminal/electron-browser/terminal';
-import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actionRegistry';
+import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
 import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
 import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
 import { KillTerminalAction, CopyTerminalSelectionAction, CreateNewTerminalAction, FocusActiveTerminalAction, FocusNextTerminalAction, FocusPreviousTerminalAction, FocusTerminalAtIndexAction, SelectDefaultShellWindowsTerminalAction, RunSelectedTextInTerminalAction, RunActiveFileInTerminalAction, ScrollDownTerminalAction, ScrollDownPageTerminalAction, ScrollToBottomTerminalAction, ScrollUpTerminalAction, ScrollUpPageTerminalAction, ScrollToTopTerminalAction, TerminalPasteAction, ToggleTerminalAction, ClearTerminalAction, AllowWorkspaceShellTerminalCommand, DisallowWorkspaceShellTerminalCommand, RenameTerminalAction, SelectAllTerminalAction, FocusTerminalFindWidgetAction, HideTerminalFindWidgetAction, ShowNextFindTermTerminalFindWidgetAction, ShowPreviousFindTermTerminalFindWidgetAction, DeleteWordLeftTerminalAction, DeleteWordRightTerminalAction, QuickOpenActionTermContributor, QuickOpenTermAction, TERMINAL_PICKER_PREFIX } from 'vs/workbench/parts/terminal/electron-browser/terminalActions';
@@ -33,6 +33,7 @@ import { QUICKOPEN_ACTION_ID, getQuickNavigateHandler } from 'vs/workbench/brows
 import { IQuickOpenRegistry, Extensions as QuickOpenExtensions, QuickOpenHandlerDescriptor } from 'vs/workbench/browser/quickopen';
 import { Scope, IActionBarRegistry, Extensions as ActionBarExtensions } from 'vs/workbench/browser/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
+import { TogglePanelAction } from 'vs/workbench/browser/parts/panel/panelActions';
 
 const quickOpenRegistry = (<IQuickOpenRegistry>Registry.as(QuickOpenExtensions.Quickopen));
 
@@ -58,7 +59,7 @@ CommandsRegistry.registerCommand(
 
 
 const registry = <IWorkbenchActionRegistry>Registry.as(ActionExtensions.WorkbenchActions);
-registry.registerWorkbenchAction(new SyncActionDescriptor(QuickOpenTermAction, QuickOpenTermAction.ID, QuickOpenTermAction.LABEL), 'Quick Open Terminal');
+registry.registerWorkbenchAction(new SyncActionDescriptor(QuickOpenTermAction, QuickOpenTermAction.ID, QuickOpenTermAction.LABEL), 'Terminal: Switch Active Terminal', nls.localize('terminal', "Terminal"));
 const actionBarRegistry = Registry.as<IActionBarRegistry>(ActionBarExtensions.Actionbar);
 actionBarRegistry.registerActionBarContributor(Scope.VIEWER, QuickOpenActionTermContributor);
 
@@ -120,11 +121,12 @@ configurationRegistry.registerConfiguration({
 			'description': nls.localize('terminal.integrated.fontFamily', "Controls the font family of the terminal, this defaults to editor.fontFamily's value."),
 			'type': 'string'
 		},
-		'terminal.integrated.fontLigatures': {
-			'description': nls.localize('terminal.integrated.fontLigatures', "Controls whether font ligatures are enabled in the terminal."),
-			'type': 'boolean',
-			'default': false
-		},
+		// TODO: Support font ligatures
+		// 'terminal.integrated.fontLigatures': {
+		// 	'description': nls.localize('terminal.integrated.fontLigatures', "Controls whether font ligatures are enabled in the terminal."),
+		// 	'type': 'boolean',
+		// 	'default': false
+		// },
 		'terminal.integrated.fontSize': {
 			'description': nls.localize('terminal.integrated.fontSize', "Controls the font size in pixels of the terminal."),
 			'type': 'number',
@@ -133,13 +135,13 @@ configurationRegistry.registerConfiguration({
 		'terminal.integrated.lineHeight': {
 			'description': nls.localize('terminal.integrated.lineHeight', "Controls the line height of the terminal, this number is multipled by the terminal font size to get the actual line-height in pixels."),
 			'type': 'number',
-			'default': 1.2
+			'default': 1
 		},
-		'terminal.integrated.enableBold': {
-			'type': 'boolean',
-			'description': nls.localize('terminal.integrated.enableBold', "Whether to enable bold text within the terminal, this requires support from the terminal shell."),
-			'default': true
-		},
+		// 'terminal.integrated.enableBold': {
+		// 	'type': 'boolean',
+		// 	'description': nls.localize('terminal.integrated.enableBold', "Whether to enable bold text within the terminal, this requires support from the terminal shell."),
+		// 	'default': true
+		// },
 		'terminal.integrated.cursorBlinking': {
 			'description': nls.localize('terminal.integrated.cursorBlinking', "Controls whether the terminal cursor blinks."),
 			'type': 'boolean',
@@ -229,6 +231,7 @@ configurationRegistry.registerConfiguration({
 				NavigateLeftAction.ID,
 				DeleteWordLeftTerminalAction.ID,
 				DeleteWordRightTerminalAction.ID,
+				TogglePanelAction.ID,
 				'workbench.action.quickOpenView'
 			].sort()
 		},
@@ -344,17 +347,17 @@ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(HideTerminalFind
 }, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FOCUS, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE)), 'Terminal: Hide Find Widget', category);
 actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(ShowNextFindTermTerminalFindWidgetAction, ShowNextFindTermTerminalFindWidgetAction.ID, ShowNextFindTermTerminalFindWidgetAction.LABEL, {
 	primary: KeyMod.Alt | KeyCode.DownArrow
-}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_INPUT_FOCUSED, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE)), 'Terminal: Find History Show Next', category);
+}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_INPUT_FOCUSED, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE)), 'Terminal: Show Next Find Term', category);
 actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(ShowPreviousFindTermTerminalFindWidgetAction, ShowPreviousFindTermTerminalFindWidgetAction.ID, ShowPreviousFindTermTerminalFindWidgetAction.LABEL, {
 	primary: KeyMod.Alt | KeyCode.UpArrow
-}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_INPUT_FOCUSED, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE)), 'Terminal: Find History Show Previous', category);
+}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_INPUT_FOCUSED, KEYBINDING_CONTEXT_TERMINAL_FIND_WIDGET_VISIBLE)), 'Terminal: Show Previous Find Term', category);
 actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(DeleteWordLeftTerminalAction, DeleteWordLeftTerminalAction.ID, DeleteWordLeftTerminalAction.LABEL, {
 	primary: KeyMod.CtrlCmd | KeyCode.Backspace,
 	mac: { primary: KeyMod.Alt | KeyCode.Backspace }
-}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Delete Word Before Cursor', category);
+}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Delete Word Left', category);
 actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(DeleteWordRightTerminalAction, DeleteWordRightTerminalAction.ID, DeleteWordRightTerminalAction.LABEL, {
 	primary: KeyMod.CtrlCmd | KeyCode.Delete,
 	mac: { primary: KeyMod.Alt | KeyCode.Delete }
-}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Delete Word After Cursor', category);
+}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Delete Word Right', category);
 registerColors();
 

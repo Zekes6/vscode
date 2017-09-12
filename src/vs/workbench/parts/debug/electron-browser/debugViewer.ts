@@ -209,7 +209,7 @@ export class BaseDebugController extends DefaultController {
 		this.contributedContextMenu = menuService.createMenu(menuId, contextKeyService);
 	}
 
-	public onContextMenu(tree: ITree, element: debug.IEnablement, event: ContextMenuEvent): boolean {
+	public onContextMenu(tree: ITree, element: debug.IEnablement, event: ContextMenuEvent, focusElement = true): boolean {
 		if (event.target && event.target.tagName && event.target.tagName.toLowerCase() === 'input') {
 			return false;
 		}
@@ -217,7 +217,9 @@ export class BaseDebugController extends DefaultController {
 		event.preventDefault();
 		event.stopPropagation();
 
-		tree.setFocus(element);
+		if (focusElement) {
+			tree.setFocus(element);
+		}
 
 		if (this.actionProvider.hasSecondaryActions(tree, element)) {
 			const anchor = { x: event.posx, y: event.posy };
@@ -502,7 +504,8 @@ export class CallStackRenderer implements IRenderer {
 		data.label = dom.append(data.stackFrame, $('span.label.expression'));
 		data.file = dom.append(data.stackFrame, $('.file'));
 		data.fileName = dom.append(data.file, $('span.file-name'));
-		data.lineNumber = dom.append(data.file, $('span.line-number'));
+		const wrapper = dom.append(data.file, $('span.line-number-wrapper'));
+		data.lineNumber = dom.append(wrapper, $('span.line-number'));
 
 		return data;
 	}
