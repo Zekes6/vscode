@@ -72,6 +72,12 @@
 			}
 		},
 		{
+			"scope": "constant.character",
+			"settings": {
+				"foreground": "#569cd6"
+			}
+		},
+		{
 			"scope": "entity.name.tag",
 			"settings": {
 				"foreground": "#569cd6"
@@ -237,7 +243,7 @@
 			}
 		},
 		{
-			"name": "JavaScript string interpolation ${}",
+			"name": "String interpolation",
 			"scope": [
 				"punctuation.definition.template-expression.begin",
 				"punctuation.definition.template-expression.end",
