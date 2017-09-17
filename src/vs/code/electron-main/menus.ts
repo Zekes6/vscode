@@ -483,7 +483,7 @@ export class CodeMenu {
 		preferencesMenu.append(iconThemeSelection);
 
 		if (isMacintosh) {
-			var touchbarSettings = this.createMenuItem(nls.localize({key: 'miTouchbarSettings', comment: ['&& denotes a mnemonic'] }, '&&Touchbar Settings'), 'workbench.action.openTouchbarSettings');
+			var touchbarSettings = this.createMenuItem(nls.localize({ key: 'miTouchbarSettings', comment: ['&& denotes a mnemonic'] }, '&&Touchbar Settings'), 'workbench.action.openTouchbarSettings');
 
 			preferencesMenu.append(__separator__());
 			preferencesMenu.append(touchbarSettings);

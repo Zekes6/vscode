@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TouchBar } from 'electron';
-const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarPopover, TouchBarScrubber } = TouchBar
+const { /*TouchBarLabel,*/ TouchBarButton, /*TouchBarSpacer, TouchBarPopover, TouchBarScrubber*/ } = TouchBar;
 
 export class CodeTouchBar {
-	private counter: number;
-
 	constructor(
 		private window: Electron.BrowserWindow,
 		//private editorGroupService: IEditorGroupService
@@ -19,17 +17,17 @@ export class CodeTouchBar {
 	}
 
 	//this code not working for ipc-message
-	private listen(event, command) {
-		const messageType = command[0];
+	// private listen(event, command) {
+	// 	const messageType = command[0];
 
-		if (messageType === 'vscode:runAction') {
-			const action = command[2];
+	// 	if (messageType === 'vscode:runAction') {
+	// 		const action = command[2];
 
-			if (action.includes('workbench.view')) {
-				this.createTouchBar(action);
-			}
-		}
-	}
+	// 		if (action.includes('workbench.view')) {
+	// 			this.createTouchBar(action);
+	// 		}
+	// 	}
+	// }
 
 	private createTouchBar(state: string = 'workbench.view.explorer'): Electron.TouchBar {
 		const defaultControls = [
@@ -39,7 +37,7 @@ export class CodeTouchBar {
 			//this.createPagesControl(),
 		];
 
-		const touchBar = new TouchBar({ items: defaultControls});
+		const touchBar = new TouchBar({ items: defaultControls });
 
 		this.window.setTouchBar(touchBar);
 
@@ -57,56 +55,56 @@ export class CodeTouchBar {
 		});
 	}
 
-	private createTouchBarPopover(label: string, items: Electron.TouchBar): Electron.TouchBarPopover {
-		return new TouchBarPopover({
-			label: label,
-			items: items
-		});
-	}
+	// private createTouchBarPopover(label: string, items: Electron.TouchBar): Electron.TouchBarPopover {
+	// 	return new TouchBarPopover({
+	// 		label: label,
+	// 		items: items
+	// 	});
+	// }
 
-	private createPagesControl() {
-		var items = [];
-		// items.length = 0;
-		// var models = this.editorGroupService.getStacksModel();
-		// models.groups.map((item) => {
-		// 	items.push(this.createTouchBarButton(item.label,''));
-		// });
-		// var codeWindows = this.windowsService.getWindows().then((result) => {
-		// 	result.map((tab) => {
-		// 		items.push(this.createTouchBarButton(tab.title, ''));
-		// 	});
-		// });
+	// private createPagesControl() {
+	// 	var items = [];
+	// 	// items.length = 0;
+	// 	// var models = this.editorGroupService.getStacksModel();
+	// 	// models.groups.map((item) => {
+	// 	// 	items.push(this.createTouchBarButton(item.label,''));
+	// 	// });
+	// 	// var codeWindows = this.windowsService.getWindows().then((result) => {
+	// 	// 	result.map((tab) => {
+	// 	// 		items.push(this.createTouchBarButton(tab.title, ''));
+	// 	// 	});
+	// 	// });
 
-		var touchBarPopover = this.createTouchBarPopover('Files', new TouchBar({ items: items }));
-		return touchBarPopover;
-	}
+	// 	var touchBarPopover = this.createTouchBarPopover('Files', new TouchBar({ items: items }));
+	// 	return touchBarPopover;
+	// }
 
-	private createTouchBarScrubber(items: Electron.ScrubberItem[]): Electron.TouchBarScrubber {
-		return new TouchBarScrubber({
-			items: items,
-			select: () => {
+	// private createTouchBarScrubber(items: Electron.ScrubberItem[]): Electron.TouchBarScrubber {
+	// 	return new TouchBarScrubber({
+	// 		items: items,
+	// 		select: () => {
 
-			},
-			highlight: () => {
+	// 		},
+	// 		highlight: () => {
 
-			},
-			selectedStyle: null,
-			overlayStyle: 'outline',
-			showArrowButtons: true,
-			continuous: true,
-			mode: 'fixed'
-		});
-	}
+	// 		},
+	// 		selectedStyle: null,
+	// 		overlayStyle: 'outline',
+	// 		showArrowButtons: true,
+	// 		continuous: true,
+	// 		mode: 'fixed'
+	// 	});
+	// }
 
-	private createTouchBarLabel(label: string, textColor?: string): Electron.TouchBarLabel {
-		return new TouchBarLabel({
-			label: label,
-			textColor: textColor
-		});
-	}
+	// private createTouchBarLabel(label: string, textColor?: string): Electron.TouchBarLabel {
+	// 	return new TouchBarLabel({
+	// 		label: label,
+	// 		textColor: textColor
+	// 	});
+	// }
 
-	//mb have a reason just send to this control command function through constructor
-	private send(channel: string, ...args: any[]): void {
-		this.window.webContents.send(channel, ...args);
-	}
+	// //mb have a reason just send to this control command function through constructor
+	// private send(channel: string, ...args: any[]): void {
+	// 	this.window.webContents.send(channel, ...args);
+	// }
 }
