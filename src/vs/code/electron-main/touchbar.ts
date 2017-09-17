@@ -104,7 +104,7 @@ export class CodeTouchBar {
 	// }
 
 	// //mb have a reason just send to this control command function through constructor
-	// private send(channel: string, ...args: any[]): void {
-	// 	this.window.webContents.send(channel, ...args);
-	// }
+	private send(channel: string, ...args: any[]): void {
+		this.window.webContents.send(channel, ...args);
+	}
 }
