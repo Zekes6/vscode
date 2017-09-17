@@ -707,7 +707,7 @@ class SuggestAdapter {
  * @internal
  */
 export function createMonacoLanguagesAPI(): typeof monaco.languages {
-	return {
+	return <any>{
 		register: register,
 		getLanguages: getLanguages,
 		onLanguage: onLanguage,

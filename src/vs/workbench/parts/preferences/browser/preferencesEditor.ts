@@ -223,6 +223,9 @@ export class PreferencesEditor extends BaseEditor {
 		if (this.preferencesService.userSettingsResource.fsPath === resource.fsPath) {
 			return ConfigurationTarget.USER;
 		}
+		if (this.preferencesService.touchbarSettingsResource.fsPath == resource.fsPath) {
+			return ConfigurationTarget.TOUCHBAR;
+		}
 		if (this.preferencesService.workspaceSettingsResource.fsPath === resource.fsPath) {
 			return ConfigurationTarget.WORKSPACE;
 		}
@@ -234,6 +237,9 @@ export class PreferencesEditor extends BaseEditor {
 
 	private getSettingsConfigurationTargetUri(resource: URI): URI {
 		if (this.preferencesService.userSettingsResource.fsPath === resource.fsPath) {
+			return resource;
+		}
+		if (this.preferencesService.touchbarSettingsResource.fsPath == resource.fsPath) {
 			return resource;
 		}
 		if (this.preferencesService.workspaceSettingsResource.fsPath === resource.fsPath) {

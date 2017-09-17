@@ -123,6 +123,24 @@ export class OpenFolderSettingsAction extends Action {
 	}
 }
 
+export class OpenTouchbarSettingsAction extends Action {
+
+		public static ID = 'workbench.action.openTouchbarSettings';
+		public static LABEL = nls.localize('openTouchbarSettings', "Open Touchbar Settings");
+
+		constructor(
+			id: string,
+			label: string,
+			@IPreferencesService private preferencesService: IPreferencesService
+		) {
+			super(id, label);
+		}
+
+		public run(event?: any): TPromise<any> {
+			return this.preferencesService.openTouchbarSettings();
+		}
+	}
+
 export class ConfigureLanguageBasedSettingsAction extends Action {
 
 	public static ID = 'workbench.action.configureLanguageBasedSettings';

@@ -68,6 +68,7 @@ export interface IEnvironmentService {
 	appQuality: string;
 	appSettingsHome: string;
 	appSettingsPath: string;
+	appTouchbarSettingsPath: string;
 	appKeybindingsPath: string;
 	machineUUID: string;
 

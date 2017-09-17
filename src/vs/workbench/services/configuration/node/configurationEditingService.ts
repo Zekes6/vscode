@@ -192,6 +192,8 @@ export class ConfigurationEditingService implements IConfigurationEditingService
 		switch (target) {
 			case ConfigurationTarget.USER:
 				return nls.localize('userTarget', "User Settings");
+			case ConfigurationTarget.TOUCHBAR:
+				return nls.localize('touchbarTarget', "Touchbar Settings");
 			case ConfigurationTarget.WORKSPACE:
 				return nls.localize('workspaceTarget', "Workspace Settings");
 			case ConfigurationTarget.FOLDER:

@@ -69,7 +69,12 @@ export enum ConfigurationTarget {
 	/**
 	 * Targets the folder configuration file for writing. This only works if a workspace is opened.
 	 */
-	FOLDER
+	FOLDER,
+
+	/**
+	 * Targets the touchbar configuration file for writing
+	 */
+	TOUCHBAR
 }
 
 export interface IConfigurationValue {

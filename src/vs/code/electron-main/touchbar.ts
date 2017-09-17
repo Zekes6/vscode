@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { TouchBar } from 'electron';
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarPopover, TouchBarScrubber } = TouchBar
 
@@ -10,7 +15,7 @@ export class CodeTouchBar {
 	) {
 		//this.initServices();
 		this.createTouchBar();
-		this.window.webContents.on('ipc-message', this.listen.bind(this));
+		//this.window.webContents.on('ipc-message', this.listen.bind(this));
 	}
 
 	//this code not working for ipc-message
@@ -34,7 +39,7 @@ export class CodeTouchBar {
 			//this.createPagesControl(),
 		];
 
-		const touchBar = new TouchBar(defaultControls);
+		const touchBar = new TouchBar({ items: defaultControls});
 
 		this.window.setTouchBar(touchBar);
 
@@ -72,7 +77,7 @@ export class CodeTouchBar {
 		// 	});
 		// });
 
-		var touchBarPopover = this.createTouchBarPopover('Files', new TouchBar(items));
+		var touchBarPopover = this.createTouchBarPopover('Files', new TouchBar({ items: items }));
 		return touchBarPopover;
 	}
 

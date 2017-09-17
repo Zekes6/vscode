@@ -71,6 +71,7 @@ export interface IPreferencesService {
 	defaultSettingsResource: URI;
 	defaultResourceSettingsResource: URI;
 	userSettingsResource: URI;
+	touchbarSettingsResource: URI;
 	workspaceSettingsResource: URI;
 	getFolderSettingsResource(resource: URI): URI;
 
@@ -82,6 +83,8 @@ export interface IPreferencesService {
 	openFolderSettings(folder: URI): TPromise<IEditor>;
 	switchSettings(target: ConfigurationTarget, resource: URI): TPromise<void>;
 	openGlobalKeybindingSettings(textual: boolean): TPromise<void>;
+
+	openTouchbarSettings(): TPromise<IEditor>;
 
 	configureSettingsForLanguage(language: string): void;
 }
@@ -104,6 +107,8 @@ export function getSettingsTargetName(target: ConfigurationTarget, resource: URI
 	switch (target) {
 		case ConfigurationTarget.USER:
 			return localize('userSettingsTarget', "User Settings");
+		case ConfigurationTarget.TOUCHBAR:
+			return localize('touchbarSettingsTarget', "Touchbar Settings");
 		case ConfigurationTarget.WORKSPACE:
 			return localize('workspaceSettingsTarget', "Workspace Settings");
 		case ConfigurationTarget.FOLDER:

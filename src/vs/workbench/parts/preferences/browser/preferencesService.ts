@@ -106,10 +106,15 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 	readonly defaultSettingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'defaultsettings', path: '/settings.json' });
 	readonly defaultResourceSettingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'defaultsettings', path: '/resourceSettings.json' });
 	readonly defaultKeybindingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'defaultsettings', path: '/keybindings.json' });
+	readonly defaultTouchbarSettingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'defaultsettings', path: '/touchbarSettings.json' });
 	private readonly workspaceConfigSettingsResource = URI.from({ scheme: network.Schemas.vscode, authority: 'settings', path: '/workspaceSettings.json' });
 
 	get userSettingsResource(): URI {
 		return this.getEditableSettingsURI(ConfigurationTarget.USER);
+	}
+
+	get touchbarSettingsResource(): URI {
+		return this.getEditableSettingsURI(ConfigurationTarget.TOUCHBAR);
 	}
 
 	get workspaceSettingsResource(): URI {
@@ -242,6 +247,10 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		return this.editorService.openEditor(this.instantiationService.createInstance(KeybindingsEditorInput), { pinned: true }).then(() => null);
 	}
 
+	openTouchbarSettings(): TPromise<IEditor> {
+		return this.doOpenSettings(ConfigurationTarget.TOUCHBAR, this.touchbarSettingsResource);
+	}
+
 	configureSettingsForLanguage(language: string): void {
 		this.openGlobalSettings()
 			.then(editor => {
@@ -315,6 +324,8 @@ export class PreferencesService extends Disposable implements IPreferencesServic
 		switch (configurationTarget) {
 			case ConfigurationTarget.USER:
 				return URI.file(this.environmentService.appSettingsPath);
+			case ConfigurationTarget.TOUCHBAR:
+				return URI.file(this.environmentService.appTouchbarSettingsPath);
 			case ConfigurationTarget.WORKSPACE:
 				const workspace = this.contextService.getWorkspace();
 				if (this.contextService.hasFolderWorkspace()) {

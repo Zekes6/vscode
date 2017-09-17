@@ -482,6 +482,13 @@ export class CodeMenu {
 		preferencesMenu.append(colorThemeSelection);
 		preferencesMenu.append(iconThemeSelection);
 
+		if (isMacintosh) {
+			var touchbarSettings = this.createMenuItem(nls.localize({key: 'miTouchbarSettings', comment: ['&& denotes a mnemonic'] }, '&&Touchbar Settings'), 'workbench.action.openTouchbarSettings');
+
+			preferencesMenu.append(__separator__());
+			preferencesMenu.append(touchbarSettings);
+		}
+
 		return new MenuItem({ label: this.mnemonicLabel(nls.localize({ key: 'miPreferences', comment: ['&& denotes a mnemonic'] }, "&&Preferences")), submenu: preferencesMenu });
 	}
 
